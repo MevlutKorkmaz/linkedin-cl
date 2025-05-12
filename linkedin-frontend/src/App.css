@@ -1,0 +1,22 @@
+/* Reset + MUI overrides if needed */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f3f2ef;
+  color: #1c1c1c;
+}
+
+/* Optional link override */
+a {
+  text-decoration: none;
+  color: #0a66c2;
+}
+
+a:hover {
+  text-decoration: underline;
+}
