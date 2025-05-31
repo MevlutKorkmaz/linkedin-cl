@@ -5,12 +5,13 @@ import lombok.Data;
 
 @Data
 public class SendMessageRequest {
-    @NotBlank
+
+    @NotBlank(message = "Sender ID cannot be blank")
     private String senderId;
 
-    @NotBlank
+    @NotBlank(message = "Receiver ID cannot be blank")
     private String receiverId;
 
-    @NotBlank
+    @NotBlank(message = "Content cannot be blank")
     private String content;
 }

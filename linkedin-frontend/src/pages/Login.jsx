@@ -30,7 +30,15 @@ export default function Login() {
     try {
       const data = await loginUser(form);
       login(data.data); // from context
-      navigate("/feed"); // or "/"
+
+      const userRole = data.data.role;
+      if (userRole === "ADMIN") {
+        navigate("/admin");
+      } else if (userRole === "COMPANY") {
+        navigate("/jobs/create");
+      } else {
+        navigate("/feed");
+      }
     } catch (err) {
       setErrorMsg(err.message || "Login failed.");
       setOpen(true);

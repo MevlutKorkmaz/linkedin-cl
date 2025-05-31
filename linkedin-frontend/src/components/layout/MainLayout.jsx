@@ -1,27 +1,36 @@
-// src/components/layout/MainLayout.jsx
-import { Box, CssBaseline, Toolbar } from '@mui/material';
-import Navbar from '../Navbar';
-import Sidebar from '../Sidebar';
+import { Box, CssBaseline, Container } from "@mui/material";
+import Sidebar from "../Sidebar";
+import { useAuth } from "../../context/AuthContext";
+import { isAdmin, isCompany, isUser } from "../../utils/roleUtils";
 
 export default function MainLayout({ children }) {
+  const { role } = useAuth();
+
+  const getBackgroundColor = () => {
+    if (isAdmin(role)) return "#fff8e1";        // Light yellow for admin
+    if (isCompany(role)) return "#e3f2fd";      // Light blue for company
+    if (isUser(role)) return "#f3f2ef";         // Default for user
+    return "#f3f2ef";                           // Fallback
+  };
+
   return (
-    <Box sx={{ display: 'flex' }}>
+    <>
       <CssBaseline />
-      <Navbar />
-      <Sidebar />
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          mt: 8,
-          ml: { sm: '240px' },
-          backgroundColor: '#f3f2ef',
-          minHeight: '100vh',
-        }}
-      >
-        {children}
+      <Box sx={{ display: "flex", bgcolor: getBackgroundColor(), minHeight: "100vh" }}>
+        <Sidebar />
+
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: { xs: 2, sm: 3, md: 4 },
+            mt: 2,
+            width: "100%",
+          }}
+        >
+          <Container maxWidth="lg">{children}</Container>
+        </Box>
       </Box>
-    </Box>
+    </>
   );
 }

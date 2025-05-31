@@ -2,6 +2,7 @@ package com.linkedin.controller;
 
 import com.linkedin.dto.requests.PostCreateRequest;
 import com.linkedin.dto.responses.ApiResponse;
+import com.linkedin.dto.responses.PostWithUserResponse;
 import com.linkedin.model.Post;
 import com.linkedin.service.PostService;
 import jakarta.validation.Valid;
@@ -47,4 +48,14 @@ public class PostController {
         postService.deletePost(postId);
         return ResponseEntity.ok(new ApiResponse<>(true, "🗑 Post deleted successfully", null));
     }
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<ApiResponse<List<Post>>> getUserPosts(@PathVariable String userId) {
+        List<Post> posts = postService.getPostsByUser(userId);
+        return ResponseEntity.ok(new ApiResponse<>(true, "✅ User posts fetched", posts));
+    }
+    @GetMapping("/all")
+    public ResponseEntity<List<PostWithUserResponse>> getAllPostsWithUser() {
+        return ResponseEntity.ok(postService.getAllPostsWithUserInfo());
+    }
+
 }

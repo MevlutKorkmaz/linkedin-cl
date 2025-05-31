@@ -3,9 +3,10 @@ package com.linkedin.service;
 import com.linkedin.dto.requests.LoginRequest;
 import com.linkedin.dto.requests.RegisterRequest;
 import com.linkedin.dto.responses.AuthResponse;
-import com.linkedin.model.*;
+import com.linkedin.model.User;
 import com.linkedin.model.enums.Role;
-import com.linkedin.repository.*;
+import com.linkedin.repository.AdminRepository;
+import com.linkedin.repository.UserRepository;
 import com.linkedin.config.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,7 +19,6 @@ import java.time.LocalDateTime;
 public class AuthService {
 
     private final UserRepository userRepo;
-    private final CompanyRepository companyRepo;
     private final AdminRepository adminRepo;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
@@ -27,58 +27,31 @@ public class AuthService {
         Role role = Role.valueOf(request.getRole().toUpperCase());
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
-        if (role == Role.USER) {
-            if (userRepo.existsByEmail(request.getEmail())) {
-                throw new RuntimeException("Email is already registered.");
-            }
-
-            User user = User.builder()
-                    .firstName(request.getFirstName())
-                    .lastName(request.getLastName())
-                    .email(request.getEmail())
-                    .password(encodedPassword)
-                    .role(role)
-                    .createdAt(LocalDateTime.now())
-                    .isActive(true)
-                    .build();
-
-            userRepo.save(user);
-            return new AuthResponse(jwtUtil.generateToken(user), user.getId(), role.name());
+        if (userRepo.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email is already registered.");
         }
 
-        if (role == Role.COMPANY) {
-            if (companyRepo.existsByEmail(request.getEmail())) {
-                throw new RuntimeException("Email is already registered.");
-            }
+        User user = User.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .email(request.getEmail())
+                .password(encodedPassword)
+                .role(role)
+                .createdAt(LocalDateTime.now())
+                .isActive(true)
+                .build();
 
-            Company company = Company.builder()
-                    .companyName(request.getFirstName() + " " + request.getLastName()) // Or use dedicated field
-                    .email(request.getEmail())
-                    .password(encodedPassword)
-                    .role(role)
-                    .createdAt(LocalDateTime.now())
-                    .isActive(true)
-                    .build();
-
-            companyRepo.save(company);
-            return new AuthResponse(jwtUtil.generateToken(company), company.getId(), role.name());
-        }
-
-        throw new IllegalArgumentException("Admin registration not allowed here");
+        userRepo.save(user);
+        return new AuthResponse(jwtUtil.generateToken(user), user.getId(), role.name());
     }
 
     public AuthResponse login(LoginRequest request) {
         String email = request.getEmail();
         String password = request.getPassword();
 
-        var user = userRepo.findByEmail(email);
+        User user = userRepo.findByEmail(email);
         if (user != null && passwordEncoder.matches(password, user.getPassword())) {
             return new AuthResponse(jwtUtil.generateToken(user), user.getId(), user.getRole().name());
-        }
-
-        var company = companyRepo.findByEmail(email);
-        if (company != null && passwordEncoder.matches(password, company.getPassword())) {
-            return new AuthResponse(jwtUtil.generateToken(company), company.getId(), company.getRole().name());
         }
 
         var admin = adminRepo.findByEmail(email);

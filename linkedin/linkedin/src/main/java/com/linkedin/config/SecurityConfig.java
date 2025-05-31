@@ -43,21 +43,41 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Public
                         .requestMatchers(
-                                "/api/auth/**",             // ✅ allow registration/login
+                                "/api/auth/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**",
                                 "/images/**",
+                                "/api/images/**",
                                 "/api/posts/public",
-                                "/api/images/**"
+                                "/ws-chat/**",
+                                "/app/**",
+                                "/topic/**"
                         ).permitAll()
-                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/jobs/**").hasAnyAuthority("COMPANY", "ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/images/upload").hasAnyAuthority("USER", "COMPANY", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/profile/update").hasAnyAuthority("USER", "COMPANY", "ADMIN")
-                        .requestMatchers("/api/profile/**", "/api/posts/**", "/api/comments/**", "/api/connections/**", "/api/messages/**", "/api/search/**")
-                        .hasAnyAuthority("USER", "COMPANY", "ADMIN")
+
+                        // Admin-only
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+                        // Company-only
+                        .requestMatchers(HttpMethod.POST, "/api/jobs").hasAnyRole("COMPANY", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/connections/**").hasAnyRole("USER", "COMPANY", "ADMIN")
+
+                        // Common authenticated routes
+                        .requestMatchers(
+                                "/api/profile/**",
+                                "/api/posts/**",
+                                "/api/comments/**",
+                                "/api/connections/**",
+                                "/api/messages/**",
+                                "/api/search/**",
+                                "/api/jobs/**",
+                                "/api/images/upload"
+                        ).hasAnyRole("USER", "COMPANY", "ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
@@ -68,9 +88,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000")); // React frontend origin
+        config.setAllowedOriginPatterns(List.of("http://localhost:3000"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -87,6 +107,11 @@ public class SecurityConfig {
                                             FilterChain filterChain)
                     throws ServletException, IOException {
 
+                if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    return;
+                }
+
                 String authHeader = request.getHeader("Authorization");
 
                 if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -99,7 +124,7 @@ public class SecurityConfig {
                             Authentication auth = new UsernamePasswordAuthenticationToken(
                                     userId,
                                     null,
-                                    List.of(new SimpleGrantedAuthority(role))
+                                    List.of(new SimpleGrantedAuthority("ROLE_" + role)) // ✅ fix
                             );
 
                             SecurityContextHolder.getContext().setAuthentication(auth);
@@ -108,11 +133,6 @@ public class SecurityConfig {
                         }
                     } catch (Exception e) {
                         System.err.println("JWT Error: " + e.getClass().getSimpleName() + " - " + e.getMessage());
-                    }
-                } else {
-                    if (request.getRequestURI().startsWith("/api/posts/")
-                            && !request.getRequestURI().contains("/public")) {
-                        System.err.println("Missing Bearer token for secured endpoint: " + request.getRequestURI());
                     }
                 }
 
@@ -130,5 +150,4 @@ public class SecurityConfig {
     public AuthenticationManager authManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
 }

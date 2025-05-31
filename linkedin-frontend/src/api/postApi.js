@@ -46,3 +46,14 @@ export const deletePost = async (postId) => {
     throw error.response?.data || { message: 'Deleting post failed' };
   }
 };
+
+export const getUserPosts = async (userId) => {
+  try {
+    const response = await axios.get(`/posts/user/${userId}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Fetching user posts failed' };
+  }
+};
+export const getEnrichedPublicPosts = () => axios.get("/posts/all");
+

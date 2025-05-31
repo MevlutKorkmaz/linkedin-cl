@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Document(collection = "jobs")
@@ -26,6 +27,7 @@ public class Job {
     private String category;
     private boolean isRemote;
 
-    private List<String> applicants; // user IDs
+    private List<String> applicants = new ArrayList<>();
+
     private LocalDateTime postedAt;
 }

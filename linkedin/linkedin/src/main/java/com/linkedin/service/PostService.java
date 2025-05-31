@@ -1,8 +1,11 @@
 package com.linkedin.service;
 
 import com.linkedin.dto.requests.PostCreateRequest;
+import com.linkedin.dto.responses.PostWithUserResponse;
 import com.linkedin.model.Post;
+import com.linkedin.model.User;
 import com.linkedin.repository.PostRepository;
+import com.linkedin.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +19,7 @@ import java.util.Optional;
 public class PostService {
 
     private final PostRepository postRepo;
+    private final UserRepository userRepository; // ✅ Add this
 
     public Post createPost(PostCreateRequest request) {
         Post post = Post.builder()
@@ -75,4 +79,29 @@ public class PostService {
 
         return postRepo.save(post);
     }
+    public List<Post> getPostsByUser(String userId) {
+        return postRepo.findByUserId(userId);
+    }
+
+
+
+    public List<PostWithUserResponse> getAllPostsWithUserInfo() {
+        List<Post> posts = postRepo.findAll(); // ✅ fix: use postRepo not postRepository
+        List<PostWithUserResponse> enriched = new ArrayList<>();
+
+        for (Post post : posts) {
+            User user = userRepository.findById(post.getUserId()).orElse(null);
+            if (user != null) {
+                enriched.add(new PostWithUserResponse(
+                        post,
+                        user.getFirstName(),
+                        user.getLastName(),
+                        user.getProfilePhotoId()
+                ));
+            }
+        }
+
+        return enriched;
+    }
+
 }

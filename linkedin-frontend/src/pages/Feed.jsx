@@ -13,7 +13,7 @@ import {
   Alert,
 } from "@mui/material";
 import axios from "../api/axiosInstance";
-
+import { getEnrichedPublicPosts } from "../api/postApi"; // Add this import
 import {
   likePost,
   sharePost,
@@ -69,15 +69,16 @@ export default function Feed() {
     }
   };
 
+
+
   const loadFeed = async () => {
     try {
-      const res = await getPublicPosts();
+      const res = await getEnrichedPublicPosts(); // Use enriched endpoint here
       setPosts(res.data.reverse());
     } catch {
       setSnackbar({ open: true, message: "Failed to load posts", error: true });
     }
   };
-
   const handleLike = async (postId) => {
     try {
       await likePost(postId, form.userId);

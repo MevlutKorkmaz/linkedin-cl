@@ -9,5 +9,6 @@ public interface PostRepository extends MongoRepository<Post, String> {
     List<Post> findByUserId(String userId);
     List<Post> findByIsPrivateFalseOrderByCreatedAtDesc(); // For public feed
     List<Post> findByContentContainingIgnoreCase(String content);
+    List<Post> findByUserIdOrderByCreatedAtDesc();
 
 }

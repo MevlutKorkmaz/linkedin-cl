@@ -1,39 +1,22 @@
 // ✅ api/messageApi.js
+import axios from "./axiosInstance";
 
-import axios from './axiosInstance';
+// 📨 Send a new message
+export const sendMessage = (messageData) =>
+  axios.post("/messages", messageData);
 
-export const sendMessage = async (messageData) => {
-  try {
-    const response = await axios.post('/api/messages', messageData);
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || { message: 'Sending message failed' };
-  }
-};
+// 💬 Get chat messages between two users
+export const getChatBetweenUsers = (user1, user2) =>
+  axios.get(`/messages/chat?user1=${user1}&user2=${user2}`);
 
-export const getChatMessages = async (user1, user2) => {
-  try {
-    const response = await axios.get(`/api/messages/chat?user1=${user1}&user2=${user2}`);
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || { message: 'Fetching chat messages failed' };
-  }
-};
+// 📥 Get unread messages for a user
+export const getUnreadMessages = (userId) =>
+  axios.get(`/messages/unread/${userId}`);
 
-export const getUnreadMessages = async (userId) => {
-  try {
-    const response = await axios.get(`/api/messages/unread/${userId}`);
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || { message: 'Fetching unread messages failed' };
-  }
-};
+// ✅ Mark a list of messages as read
+export const markMessagesAsRead = (messageIds) =>
+  axios.put("/messages/mark-as-read", messageIds);
 
-export const markMessagesAsRead = async (messageIds) => {
-  try {
-    const response = await axios.put('/api/messages/mark-as-read', messageIds);
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || { message: 'Marking messages as read failed' };
-  }
-};
+// 🧑‍🤝‍🧑 Get recent users this user has chatted with
+export const getRecentChats = (userId) =>
+  axios.get(`/messages/recent/${userId}`);
